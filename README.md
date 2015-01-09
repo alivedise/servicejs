@@ -15,12 +15,49 @@ Note: You need to have your own loader; servicejs does not load the requestee fo
     }
   };
   Service.register('show', A);
+  Service.registerState('isVisible', B);
+  A.show(); // B.hide() will be executed once it registers.
   var B = {
     name: 'B',
-    isVisible: function() {},
     hide: function() {}
   };
   Service.register('hide', B);
-  Service.registerState('isVisible', B);
-  A.show(); // B.hide() will be executed in a promise.
+```
+
+### Sample 2 ###
+```js
+  var Person = function(name) {
+    this.name = name;
+  };
+  Person.prototype = {
+    helpHelpHelp: function() {
+      Service.request('save', this);
+    }
+  };
+  var John = new Person('John');
+  John.helpHelpHelp(); // The request is now queued.
+  var SuperHero = function(name) {
+    this.name = name;
+  };
+  SuperHero.prototype = {
+    name: 'Superman',
+    save: function(target) {
+      if (target.isEmergency()) {
+        this.flyTo(target);
+      }
+    },
+    transform: function() {
+      Service.register('save', Superman); // Superman will serve 'save' from now on.
+    },
+    untransform: function() {
+      Service.unregister('save', Superman); // Superman now 
+    }
+  };
+  var Superman = new SuperHero('Superman');
+  var Supergirl = new SuperHero('Supergirl');
+
+  Superman.transform();
+  var Mary = new Person('Mary');
+  Supergirl.transform();
+  Mary.helpHelpHelp(); // Both Superman and Supergirl will proceed this request.
 ```
