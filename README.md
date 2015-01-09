@@ -4,7 +4,7 @@ servicejs is created as a request queuing system across your modules.
 A module could request at any timing without check if other module is loaded or active.
 
 Note: You need to have your own loader; servicejs does not load the requestee for you.
-As the designer of your website, has the responsibility to design the loading sequence.
+As the designer of your website, you have the responsibility to design the loading sequence.
 
 ## Usage ##
 ### Sample 1 ###
@@ -67,4 +67,21 @@ As the designer of your website, has the responsibility to design the loading se
   var Mary = new Person('Mary');
   Supergirl.transform();
   Mary.helpHelpHelp(); // Both Superman and Supergirl will proceed this request.
+```
+
+### Sample 3 ###
+```js
+  var PermissionServer = function() {};
+  PermissionServer.prototype = {
+    camera: null,
+    name: 'PermissionServer',
+    permission: function(name) {
+      return new Promise(function(resolve) {
+        resolve(this.camera);
+      }.bind(this));
+    }
+  };
+  Service.request('permission', 'camera').then(function() {
+    // Do something
+  });
 ```
