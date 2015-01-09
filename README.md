@@ -31,7 +31,11 @@ Note: You need to have your own loader; servicejs does not load the requestee fo
   };
   Person.prototype = {
     helpHelpHelp: function() {
+      this._emergent = true;
       Service.request('save', this);
+    },
+    inEmergency: function() {
+      return this._emergent;
     }
   };
   var John = new Person('John');
@@ -40,11 +44,14 @@ Note: You need to have your own loader; servicejs does not load the requestee fo
     this.name = name;
   };
   SuperHero.prototype = {
-    name: 'Superman',
+    name: 'Superhero',
     save: function(target) {
-      if (target.isEmergency()) {
+      if (target.inEmergency()) {
         this.flyTo(target);
       }
+    },
+    flyTo: function(target) {
+      console.yield('flying');
     },
     transform: function() {
       Service.register('save', Superman); // Superman will serve 'save' from now on.
@@ -56,7 +63,7 @@ Note: You need to have your own loader; servicejs does not load the requestee fo
   var Superman = new SuperHero('Superman');
   var Supergirl = new SuperHero('Supergirl');
 
-  Superman.transform();
+  Superman.transform(); // John will be rescued by Superman!
   var Mary = new Person('Mary');
   Supergirl.transform();
   Mary.helpHelpHelp(); // Both Superman and Supergirl will proceed this request.
