@@ -57,7 +57,7 @@ Note: You need to have your own loader; servicejs does not load the requestee fo
       Service.register('save', Superman); // Superhero will serve 'save' from now on.
     },
     untransform: function() {
-      Service.unregister('save', Superman); // Superman now is off duty.
+      Service.unregister('save', Superman); // Superhero now is off duty.
     }
   };
   var Superman = new SuperHero('Superman');
