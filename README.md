@@ -54,10 +54,10 @@ Note: You need to have your own loader; servicejs does not load the requestee fo
       console.yield('flying');
     },
     transform: function() {
-      Service.register('save', Superman); // Superman will serve 'save' from now on.
+      Service.register('save', Superman); // Superhero will serve 'save' from now on.
     },
     untransform: function() {
-      Service.unregister('save', Superman); // Superman now 
+      Service.unregister('save', Superman); // Superman now is off duty.
     }
   };
   var Superman = new SuperHero('Superman');
