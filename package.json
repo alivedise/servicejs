@@ -6,10 +6,6 @@
   "directories": {
     "test": "test"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@git.acadine.com:shared/service.git"
-  },
   "private": "true",
   "devDependencies": {
     "del": "^1.2.1",
