@@ -1,3 +1,7 @@
+/* global Map, Promise */
+/* jshint node: true */
+/* jshint browser:true */
+
 'use strict';
 
 (function(exports) {
@@ -35,10 +39,14 @@
     /**
      * Request a service and get a promise.
      * The service name may include the name of server or not if it is unique.
+     *
+     * The request and query format are different,
+     * request does not accept getter format.
+     *
      * @example
      * Service.request('locked').then(function() {});
      * Service.request('addObserver', 'test.enabled', this).then(function() {});
-     * Service.request('StatusBar:height').then(function() {});
+     * Service.request('Statusbar:height').then(function() {});
      *
      * @param  {String} service Service name
      * @return {Promise}
@@ -54,11 +62,8 @@
         if (this._providers.get(serverName)) {
           this.debug('service: ' + serviceName +
             ' is online, perform the request with ' + args.concat());
-          return new Promise(function(resolve, reject) {
-            var returnValue = self._providers.get(serverName)[serviceName]
-              .apply(self._providers.get(serverName), args);
-            self._unwrapPromise(returnValue, resolve, reject);
-          });
+          return Promise.resolve(this._providers.get(serverName)[serviceName]
+              .apply(self._providers.get(serverName), args));
         } else {
           return new Promise(function(resolve, reject) {
             self.debug('service: ' + service + ' is offline, queue the task.');
@@ -68,7 +73,6 @@
             self._requestsByProvider.get(serverName).push({
               service: serviceName,
               resolve: resolve,
-              reject: reject,
               args: args
             });
           });
@@ -79,10 +83,7 @@
         var server = this._services.get(service);
         this.debug('service [' + service +
           '] provider [' + server.name + '] is online, perform the task.');
-        return new Promise(function(resolve, reject) {
-          var returnValue = resolve(server[service].apply(server, args));
-          self._unwrapPromise(returnValue, resolve, reject);
-        });
+        return Promise.resolve(server[service].apply(server, args));
       } else {
         this.debug('service: ' + service + ' is offline, queue the task.');
         var promise = new Promise(function(resolve, reject) {
@@ -92,9 +93,8 @@
           }
           self._requestsByService.get(service).push({
             service: service,
-            args: args,
             resolve: resolve,
-            reject: reject
+            args: args
           });
         });
         return promise;
@@ -124,7 +124,7 @@
           var returnValue = (typeof(server[request.service]) === 'function') ?
             server[request.service].apply(server, request.args) :
             server[request.service];
-          self._unwrapPromise(returnValue, request.resolve, request.reject);
+          request.resolve(returnValue);
         });
         this._requestsByProvider.delete(server.name);
       }
@@ -142,24 +142,9 @@
         this._requestsByService.get(service).forEach(function(request) {
           self.debug('resolving..', server, request.service);
           var returnValue = server[request.service].apply(server, request.args);
-          self._unwrapPromise(returnValue, request.resolve, request.reject);
+          request.resolve(returnValue);
         });
         this._requestsByService.delete(service);
-      }
-    },
-
-    /* Helper function to unwrap the promise in service request */
-    _unwrapPromise: function(returnValue, resolve, reject) {
-      if (returnValue && returnValue.then && returnValue.catch) {
-        this.debug('return value is promise', returnValue);
-        returnValue.then(function(result) {
-          resolve(result);
-        }).catch(function(error) {
-          reject(error);
-        });
-      } else {
-        this.debug('return value is non-promise', returnValue);
-        resolve(returnValue);
       }
     },
 
@@ -181,6 +166,9 @@
 
     registerState: function(state, provider) {
       this._states.set(provider.name, provider);
+      if (!provider.name) {
+        console.warn(provider);
+      }
       this._statesByState.set(state, provider);
     },
 
@@ -200,9 +188,9 @@
      * @example
      * Service.query('FtuLauncher.isFtuRunning');
      * Service.query('isFtuRunning');
-     * 
+     *
      * @param  {String} state The machine name and the state name.
-     * @return {String|Boolean|Number}       
+     * @return {String|Boolean|Number|Object}
      */
     query: function(stateString) {
       this.debug(stateString);
@@ -250,6 +238,10 @@
           '[' + this.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
+    },
+
+    get manifestURL() {
+      return window.location.href.replace('index.html', 'manifest.webapp');
     }
   };
 })(window);
